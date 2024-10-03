@@ -119,6 +119,37 @@ class FaceTracker(QThread):
                     right_blink = self.detect_blink(right_eye_landmarks, image)
                     mouth_open = self.detect_mouth_open(mouth_landmarks, image)
 
+                    mouth_opening = int(mouth_landmarks[1].y * image.shape[0]) - int(mouth_landmarks[0].y * image.shape[0])
+                    tilt_angle = self.detect_head_tilt(face_landmarks, image)
+                    relative_tilt = abs(tilt_angle - (self.neutral_angle or 0))
+                    left_eye_points = [(int(lm.x * image.shape[1]), int(lm.y * image.shape[0])) for lm in left_eye_landmarks]
+                    left_ear = self.eye_aspect_ratio(left_eye_points)
+                    right_eye_points = [(int(lm.x * image.shape[1]), int(lm.y * image.shape[0])) for lm in right_eye_landmarks]
+                    right_ear = self.eye_aspect_ratio(right_eye_points)
+
+                    texts = [
+                        f'Left EAR: {left_ear:.2f}',
+                        f'Right EAR: {right_ear:.2f}',
+                        f'Mouth Opening: {mouth_opening}',
+                        f'Head Tilt: {abs(relative_tilt):.2f}'
+                    ]
+                    
+                    y_position = 30
+                    for text in texts:
+                        # Create a blank image for the text
+                        text_image = np.zeros_like(image)
+                        cv2.putText(text_image, text, (30, y_position), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+
+                        # Mirror the text image
+                        mirrored_text_image = cv2.flip(text_image, 1)
+
+                        # Overlay the mirrored text image onto the original frame
+                        mask = mirrored_text_image > 0
+                        image[mask] = mirrored_text_image[mask]
+
+                        y_position += 30  # Adjust y_position for the next line of text
+
+
                     current_time = time.time()
 
                     # Handle left eye blink

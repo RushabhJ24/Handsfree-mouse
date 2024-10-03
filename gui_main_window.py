@@ -5,6 +5,8 @@ from face_tracking import FaceTracker
 from speech import SpeechToText
 from config_manager import ConfigManager
 import pyautogui
+from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import QUrl
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -64,6 +66,11 @@ class MainWindow(QWidget):
         button_layout.addWidget(self.speakButton)
         button_layout.addWidget(self.scrollButton)
         main_layout.addLayout(button_layout)
+
+         # Add YouTube Button
+        self.youtubeButton = QPushButton('Watch Demo Video', self)
+        self.youtubeButton.clicked.connect(self.openYouTubeVideo)
+        main_layout.addWidget(self.youtubeButton)
 
         # Sensitivity slider
         sensitivity_group = QGroupBox("Sensitivity Control")
@@ -138,6 +145,9 @@ class MainWindow(QWidget):
 
     def onTrackingFinished(self):
         self.startButton.setEnabled(True)
+
+    def openYouTubeVideo(self):
+        QDesktopServices.openUrl(QUrl("https://youtu.be/TVj9aXJsr0A?si=feRLJKy-6kJ7iEk4"))
 
     def updateSensitivity(self, value):
         self.sensitivityLabel.setText(f'Sensitivity: {value}')
