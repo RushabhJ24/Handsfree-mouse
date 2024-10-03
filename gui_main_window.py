@@ -3,11 +3,13 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QVBoxLayout, QSlider, QLabel,
 from PyQt5.QtCore import Qt
 from face_tracking import FaceTracker
 from speech import SpeechToText
+from config_manager import ConfigManager
 import pyautogui
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.config_manager = ConfigManager()
         self.initUI()
         self.speech_to_text_active = False
 
@@ -69,7 +71,7 @@ class MainWindow(QWidget):
         self.sensitivitySlider = QSlider(Qt.Horizontal, self)
         self.sensitivitySlider.setMinimum(1)
         self.sensitivitySlider.setMaximum(10)
-        self.sensitivitySlider.setValue(3)
+        self.sensitivitySlider.setValue(int(self.config_manager.get_value('TRACKING', 'sensitivity', '3')))
         self.sensitivitySlider.setTickPosition(QSlider.TicksBelow)
         self.sensitivitySlider.setTickInterval(1)
         self.sensitivitySlider.valueChanged.connect(self.updateSensitivity)
@@ -83,17 +85,17 @@ class MainWindow(QWidget):
         params_group = QGroupBox("Tracking Parameters")
         params_layout = QFormLayout()
         self.blinkThresholdInput = QLineEdit(self)
-        self.blinkThresholdInput.setText('0.2')
+        self.blinkThresholdInput.setText(self.config_manager.get_value('TRACKING', 'blink_threshold', '0.2'))
         self.blinkDurationInput = QLineEdit(self)
-        self.blinkDurationInput.setText('0.3')
+        self.blinkDurationInput.setText(self.config_manager.get_value('TRACKING', 'blink_duration', '0.3'))
         self.mouthOpenThresholdInput = QLineEdit(self)
-        self.mouthOpenThresholdInput.setText('30')
+        self.mouthOpenThresholdInput.setText(self.config_manager.get_value('TRACKING', 'mouth_open_threshold', '30'))
         self.mouthOpenDurationInput = QLineEdit(self)
-        self.mouthOpenDurationInput.setText('0.5')
+        self.mouthOpenDurationInput.setText(self.config_manager.get_value('TRACKING', 'mouth_open_duration', '0.5'))
         self.tiltThresholdInput = QLineEdit(self)
-        self.tiltThresholdInput.setText('10')
+        self.tiltThresholdInput.setText(self.config_manager.get_value('TRACKING', 'tilt_threshold', '10'))
         self.scrollSpeedInput = QLineEdit(self)
-        self.scrollSpeedInput.setText('20')
+        self.scrollSpeedInput.setText(self.config_manager.get_value('TRACKING', 'scroll_speed', '20'))
         params_layout.addRow("Blink Threshold:", self.blinkThresholdInput)
         params_layout.addRow("Blink Duration:", self.blinkDurationInput)
         params_layout.addRow("Mouth Open Threshold:", self.mouthOpenThresholdInput)
@@ -102,6 +104,14 @@ class MainWindow(QWidget):
         params_layout.addRow("Scroll Speed:", self.scrollSpeedInput)
         params_group.setLayout(params_layout)
         main_layout.addWidget(params_group)
+
+        # Connect the value changed signals to update the config
+        self.blinkThresholdInput.textChanged.connect(lambda: self.updateConfig('blink_threshold', self.blinkThresholdInput.text()))
+        self.blinkDurationInput.textChanged.connect(lambda: self.updateConfig('blink_duration', self.blinkDurationInput.text()))
+        self.mouthOpenThresholdInput.textChanged.connect(lambda: self.updateConfig('mouth_open_threshold', self.mouthOpenThresholdInput.text()))
+        self.mouthOpenDurationInput.textChanged.connect(lambda: self.updateConfig('mouth_open_duration', self.mouthOpenDurationInput.text()))
+        self.tiltThresholdInput.textChanged.connect(lambda: self.updateConfig('tilt_threshold', self.tiltThresholdInput.text()))
+        self.scrollSpeedInput.textChanged.connect(lambda: self.updateConfig('scroll_speed', self.scrollSpeedInput.text()))
 
         # Add some spacing
         main_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -132,6 +142,10 @@ class MainWindow(QWidget):
     def updateSensitivity(self, value):
         self.sensitivityLabel.setText(f'Sensitivity: {value}')
         self.face_tracker.sensitivity = value
+        self.config_manager.set_value('TRACKING', 'sensitivity', str(value))
+
+    def updateConfig(self, key, value):
+        self.config_manager.set_value('TRACKING', key, value)
 
     def startSpeechToText(self):
         if not self.speech_to_text_active:
