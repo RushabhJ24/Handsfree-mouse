@@ -147,7 +147,7 @@ class MainWindow(QWidget):
         self.startButton.setEnabled(True)
 
     def openYouTubeVideo(self):
-        QDesktopServices.openUrl(QUrl("https://youtu.be/TVj9aXJsr0A?si=feRLJKy-6kJ7iEk4"))
+        QDesktopServices.openUrl(QUrl("https://www.youtube.com/watch?v=Em6n8RKEHAk"))
 
     def updateSensitivity(self, value):
         self.sensitivityLabel.setText(f'Sensitivity: {value}')
